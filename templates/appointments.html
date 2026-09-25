@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointments Management - MediCare HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Appointment Schedules</h3>
+        <p class="text-muted mb-0">Track, schedule, and update clinical consultations</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scheduleApptModal">
+        <i class="bi bi-calendar-plus me-1"></i> Book New Appointment
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 w-100">
+            <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-outline-secondary active" onclick="filterStatus('all')">All</button>
+                <button type="button" class="btn btn-outline-success" onclick="filterStatus('Confirmed')">Confirmed</button>
+                <button type="button" class="btn btn-outline-warning" onclick="filterStatus('Pending')">Pending</button>
+                <button type="button" class="btn btn-outline-primary" onclick="filterStatus('Completed')">Completed</button>
+                <button type="button" class="btn btn-outline-danger" onclick="filterStatus('Cancelled')">Cancelled</button>
+            </div>
+            <span class="badge bg-light text-dark border">{{ appointments|length }} Total Records</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="appointmentsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Date & Time</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    {% if session.get('user_role') in ['admin', 'doctor', 'receptionist'] %}
+                    <th class="text-end">Update Status</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                <tr data-status="{{ appt.status }}">
+                    <td class="text-muted">#{{ appt.id }}</td>
+                    <td class="fw-semibold">
+                        {{ appt.patient.full_name }}
+                        <div class="small text-muted">{{ appt.patient.phone }}</div>
+                    </td>
+                    <td>
+                        {{ appt.doctor.full_name }}
+                        <div class="small text-muted">{{ appt.doctor.specialization }} ({{ appt.doctor.room_number }})</div>
+                    </td>
+                    <td>
+                        <span class="fw-medium">{{ appt.appointment_date.strftime('%b %d, %Y') }}</span>
+                        <div class="small text-muted">{{ appt.appointment_date.strftime('%I:%M %p') }}</div>
+                    </td>
+                    <td style="max-width: 250px;">
+                        <span class="text-truncate d-inline-block" style="max-width: 240px;" title="{{ appt.reason }}">
+                            {{ appt.reason }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if appt.status == 'Confirmed' %}
+                            <span class="badge badge-soft-success">Confirmed</span>
+                        {% elif appt.status == 'Completed' %}
+                            <span class="badge badge-soft-primary">Completed</span>
+                        {% elif appt.status == 'Pending' %}
+                            <span class="badge badge-soft-warning">Pending</span>
+                        {% else %}
+                            <span class="badge badge-soft-danger">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    {% if session.get('user_role') in ['admin', 'doctor', 'receptionist'] %}
+                    <td class="text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown">
+                                Action
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateAppointmentStatus({{ appt.id }}, 'Confirmed')"><i class="bi bi-check2 text-success me-2"></i>Confirm</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateAppointmentStatus({{ appt.id }}, 'Completed')"><i class="bi bi-check2-all text-primary me-2"></i>Complete</a></li>
+                                <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="updateAppointmentStatus({{ appt.id }}, 'Cancelled')"><i class="bi bi-x-circle text-danger me-2"></i>Cancel</a></li>
+                                {% if session.get('user_role') == 'admin' %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteItem('/api/appointments', {{ appt.id }}, 'appointment')"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No appointment schedules found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal fade" id="scheduleApptModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus text-primary me-2"></i>Schedule Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('api_appointments') }}">
+                <div class="modal-body">
+                    {% if session.get('user_role') != 'patient' %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Patient *</label>
+                        <select class="form-select" name="patient_id" required>
+                            <option value="">-- Select Patient --</option>
+                            {% for p in patients %}
+                            <option value="{{ p.id }}">{{ p.full_name }} ({{ p.phone }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Doctor & Department *</label>
+                        <select class="form-select" name="doctor_id" required>
+                            <option value="">-- Select Doctor --</option>
+                            {% for doc in doctors %}
+                            <option value="{{ doc.id }}">{{ doc.full_name }} - {{ doc.specialization }} ({{ doc.room_number }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Date & Time *</label>
+                        <input type="datetime-local" class="form-control" name="appointment_date" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Chief Complaint / Reason *</label>
+                        <textarea class="form-control" name="reason" rows="3" required placeholder="Describe symptoms or reason for visit"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterStatus(status) {
+        const rows = document.querySelectorAll('#appointmentsTable tbody tr');
+        rows.forEach(row => {
+            const rowStatus = row.getAttribute('data-status');
+            if (status === 'all' || rowStatus === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update active class on filter buttons
+        document.querySelectorAll('.btn-group button').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+</script>
+{% endblock %}

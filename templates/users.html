@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - MediCare HMS{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">System User Administration</h3>
+        <p class="text-muted mb-0">Manage clinical staff, administrative personnel, and patient logins</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="bi bi-person-plus-fill me-1"></i> Add New User / Staff
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <span class="fw-bold"><i class="bi bi-shield-check text-primary me-2"></i>Active User Accounts</span>
+            <span class="badge bg-light text-dark border">{{ users|length }} Accounts</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Email Address</th>
+                    <th>System Role</th>
+                    <th>Registration Date</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="text-muted">#UID-{{ u.id }}</td>
+                    <td class="fw-semibold">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                {{ u.username[0]|upper }}
+                            </div>
+                            <span>{{ u.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>
+                        {% if u.role == 'admin' %}
+                            <span class="badge badge-soft-danger"><i class="bi bi-shield-lock me-1"></i>Administrator</span>
+                        {% elif u.role == 'doctor' %}
+                            <span class="badge badge-soft-primary"><i class="bi bi-heart-pulse me-1"></i>Doctor</span>
+                        {% elif u.role == 'receptionist' %}
+                            <span class="badge badge-soft-warning"><i class="bi bi-person-badge me-1"></i>Receptionist</span>
+                        {% else %}
+                            <span class="badge badge-soft-success"><i class="bi bi-person me-1"></i>Patient</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ u.created_at.strftime('%b %d, %Y %I:%M %p') if u.created_at else 'N/A' }}</td>
+                    <td class="text-end">
+                        {% if u.id != session.get('user_id') %}
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('/api/users', {{ u.id }}, 'user account')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        {% else %}
+                        <span class="badge badge-soft-secondary">Current Session</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus text-primary me-2"></i>Create New User Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('api_users') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username *</label>
+                        <input type="text" class="form-control" name="username" required placeholder="e.g. dr_adams">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email Address *</label>
+                        <input type="email" class="form-control" name="email" required placeholder="adams@medicare.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Initial Password *</label>
+                        <input type="password" class="form-control" name="password" required placeholder="Strong password" minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Role *</label>
+                        <select class="form-select" name="role" id="userRoleSelect" onchange="toggleDoctorFields(this.value)" required>
+                            <option value="patient">Patient</option>
+                            <option value="doctor">Doctor</option>
+                            <option value="receptionist">Receptionist / Front Desk</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+
+                    <!-- Additional Doctor Specific Fields -->
+                    <div id="doctorExtraFields" style="display: none;" class="p-3 bg-light rounded mb-3">
+                        <h6 class="fw-bold small text-muted text-uppercase mb-2">Doctor Profile Information</h6>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Doctor Full Name</label>
+                            <input type="text" class="form-control form-control-sm" name="full_name" placeholder="Dr. John Adams, MD">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Specialization</label>
+                            <input type="text" class="form-control form-control-sm" name="specialization" placeholder="e.g. Neurology, Pediatrics">
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Room / Office</label>
+                                <input type="text" class="form-control form-control-sm" name="room_number" placeholder="Room 204">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Contact Phone</label>
+                                <input type="tel" class="form-control form-control-sm" name="phone" placeholder="+1 (555) 000-0000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleDoctorFields(role) {
+        const extra = document.getElementById('doctorExtraFields');
+        if (extra) {
+            extra.style.display = (role === 'doctor') ? 'block' : 'none';
+        }
+    }
+</script>
+{% endblock %}

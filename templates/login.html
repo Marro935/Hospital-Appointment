@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - MediCare Hospital Management System{% endblock %}
+
+{% block public_content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-4 p-3 mb-3 shadow" style="width: 58px; height: 58px;">
+                <i class="bi bi-hospital fs-2"></i>
+            </div>
+            <h3 class="fw-bold mb-1 text-dark">MediCare Hospital</h3>
+            <p class="text-muted small">Sign in to your clinical or administrative account</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="mb-3">
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0" id="username" name="username" placeholder="Enter username" required autofocus>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <label for="password" class="form-label fw-semibold">Password</label>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                    <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="Enter password" required>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mb-4">
+                <button type="submit" class="btn btn-primary py-2 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                </button>
+            </div>
+        </form>
+
+        <!-- Quick 1-Click Role Testing Autofill -->
+        <div class="border-top pt-3 mt-2">
+            <div class="text-center mb-2">
+                <span class="text-muted small fw-semibold text-uppercase" style="letter-spacing: 0.05em;">
+                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Demo Role Fill:
+                </span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+                <button type="button" class="role-chip-btn" onclick="fillLogin('admin')">
+                    <i class="bi bi-shield-lock-fill text-danger"></i> Admin
+                </button>
+                <button type="button" class="role-chip-btn" onclick="fillLogin('doctor')">
+                    <i class="bi bi-heart-pulse-fill text-primary"></i> Doctor
+                </button>
+                <button type="button" class="role-chip-btn" onclick="fillLogin('receptionist')">
+                    <i class="bi bi-person-badge-fill text-teal"></i> Receptionist
+                </button>
+                <button type="button" class="role-chip-btn" onclick="fillLogin('patient')">
+                    <i class="bi bi-person-fill text-success"></i> Patient
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <p class="text-muted small mb-0">Are you a new patient? 
+                <a href="{{ url_for('register') }}" class="fw-semibold text-primary text-decoration-none">Create an Account</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

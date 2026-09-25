@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Registration - MediCare HMS{% endblock %}
+
+{% block public_content %}
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width: 580px;">
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center bg-teal text-white rounded-4 p-3 mb-3 shadow" style="width: 56px; height: 56px; background-color: var(--teal-color);">
+                <i class="bi bi-person-plus-fill fs-2"></i>
+            </div>
+            <h3 class="fw-bold mb-1 text-dark">Patient Registration</h3>
+            <p class="text-muted small">Register to book appointments, review your health records & prescriptions</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('register') }}">
+            <h6 class="fw-bold text-muted text-uppercase small border-bottom pb-2 mb-3">Account Credentials</h6>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="username" class="form-label fw-semibold">Username *</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="e.g. jdoe88" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label fw-semibold">Email *</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="john@example.com" required>
+                </div>
+                <div class="col-12">
+                    <label for="password" class="form-label fw-semibold">Password *</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required minlength="6">
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-muted text-uppercase small border-bottom pb-2 mb-3 mt-4">Personal & Medical Profile</h6>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="full_name" class="form-label fw-semibold">Full Legal Name *</label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" placeholder="John Doe" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="phone" class="form-label fw-semibold">Phone Number *</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="+1 (555) 000-0000" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="dob" class="form-label fw-semibold">Date of Birth *</label>
+                    <input type="date" class="form-control" id="dob" name="dob" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="gender" class="form-label fw-semibold">Gender *</label>
+                    <select class="form-select" id="gender" name="gender" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label for="address" class="form-label fw-semibold">Home Address</label>
+                    <input type="text" class="form-control" id="address" name="address" placeholder="123 Health Ave, Suite 4">
+                </div>
+                <div class="col-12">
+                    <label for="emergency_contact" class="form-label fw-semibold">Emergency Contact</label>
+                    <input type="text" class="form-control" id="emergency_contact" name="emergency_contact" placeholder="Name & Phone Number">
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mb-4 mt-4">
+                <button type="submit" class="btn btn-primary py-2 fw-semibold">
+                    <i class="bi bi-check2-circle me-1"></i> Complete Registration
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-3">
+            <p class="text-muted small mb-0">Already registered? 
+                <a href="{{ url_for('login') }}" class="fw-semibold text-primary text-decoration-none">Sign In Here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
